@@ -1,4 +1,5 @@
-// Package client provides functionality to connect to a WebSocket server.
+// Package client provides functionality to connect to a Socket.IO WebSocket server.
+// It allows clients to emit events, listen for events, and manage acknowledgments.
 package client
 
 import (
@@ -9,12 +10,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Connect establishes a WebSocket connection to the server at the given URL.
-func Connect(serverURL string, onConnect func(*Socket)) (*Socket, error) {
+// Connect establishes a WebSocket connection to the Socket.IO server at the given URL and namespace.
+// It calls onConnect with the socket once connected, then emits a "connect" event.
+// Namespace defaults to "/" if empty.
+func Connect(serverURL string, namespace string, onConnect func(*Socket)) (*Socket, error) {
+	if namespace == "" {
+		namespace = "/"
+	}
+
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
 	}
+	u.Path = namespace
 
 	dialer := websocket.Dialer{}
 	conn, _, err := dialer.Dial(u.String(), nil)
@@ -26,6 +34,7 @@ func Connect(serverURL string, onConnect func(*Socket)) (*Socket, error) {
 		EventEmitter: emitter.EventEmitter{},
 		Conn:         conn,
 		writeChan:    make(chan sockets.Packet, 10),
+		Namespace:    namespace,
 	}
 
 	go socket.readLoop()

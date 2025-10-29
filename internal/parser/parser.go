@@ -1,4 +1,5 @@
-// Package parser provides functions to encode and decode sockets.Packet structures.
+// Package parser provides functions to encode and decode Socket.IO packet structures.
+// It handles the serialization and deserialization of packets according to the Socket.IO protocol.
 package parser
 
 import (
@@ -10,7 +11,8 @@ import (
 	"github.com/givensuman/go-sockets"
 )
 
-// Encode converts a gosock.Packet into its byte slice representation.
+// Encode converts a Packet into its byte slice representation according to the Socket.IO protocol.
+// For example, an EVENT packet becomes "2[event,data]".
 func Encode(p sockets.Packet) []byte {
 	var sb strings.Builder
 	sb.WriteString(strconv.Itoa(int(p.Type)))
@@ -27,7 +29,8 @@ func Encode(p sockets.Packet) []byte {
 	return []byte(sb.String())
 }
 
-// Decode converts a byte slice representation into a gosock.Packet.
+// Decode converts a byte slice representation into a Packet according to the Socket.IO protocol.
+// It parses the packet type, namespace, ID, and data from the encoded string.
 func Decode(data []byte) (sockets.Packet, error) {
 	s := string(data)
 	if len(s) == 0 {
@@ -57,8 +60,8 @@ func Decode(data []byte) (sockets.Packet, error) {
 		}
 	}
 
-	// For ACK, check if starts with digit for ID
-	if p.Type == sockets.Ack && len(s) > 0 && s[0] >= '0' && s[0] <= '9' {
+	// For ACK or EVENT, check if starts with digit for ID
+	if (p.Type == sockets.Ack || p.Type == sockets.Event) && len(s) > 0 && s[0] >= '0' && s[0] <= '9' {
 		idStr := ""
 		i := 0
 		for i < len(s) && s[i] >= '0' && s[i] <= '9' {
