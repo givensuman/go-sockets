@@ -44,7 +44,17 @@ func (s *Socket) readLoop() {
 
 		switch packet.Type {
 		case sockets.Connect:
-			// Handle CONNECT
+			s.EventEmitter.Emit("connect")
+			connectPacket := sockets.Packet{
+				Type:      sockets.Connect,
+				Namespace: packet.Namespace,
+			}
+			select {
+			case s.writeChan <- connectPacket:
+			default:
+				s.Close()
+			}
+
 		case sockets.Event:
 			eventName, ok := packet.GetEventName()
 			if !ok {
@@ -65,12 +75,14 @@ func (s *Socket) readLoop() {
 						Namespace: packet.Namespace,
 						ID:        packet.ID,
 					}
+
 					select {
 					case s.writeChan <- ackPacket:
 					default:
 						s.Close()
 					}
 				})
+
 				callbackType := s.GetCallbackType(*eventName)
 				if callbackType != nil && callbackType.NumIn() > 1 {
 					ackType := callbackType.In(callbackType.NumIn() - 1)
@@ -86,24 +98,30 @@ func (s *Socket) readLoop() {
 						ackFuncValue.Call(callArgs)
 						return nil
 					})
+
 					eventArgs = append(eventArgs, ackValue.Interface())
 				}
 			}
 
 			s.EventEmitter.Emit(*eventName, eventArgs...)
+
 		case sockets.Ack:
 			if packet.ID != nil {
 				if callback, ok := s.ackMap.Load(*packet.ID); ok {
 					s.ackMap.Delete(*packet.ID)
+
 					var ackArgs []any
 					json.Unmarshal(packet.Data, &ackArgs)
+
 					var callArgs []reflect.Value
 					for _, arg := range ackArgs {
 						callArgs = append(callArgs, reflect.ValueOf(arg))
 					}
+
 					callback.(reflect.Value).Call(callArgs)
 				}
 			}
+
 		case sockets.Disconnect:
 			s.EventEmitter.Emit("disconnect", "client request")
 			return
