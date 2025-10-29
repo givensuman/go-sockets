@@ -115,27 +115,34 @@ func (s *Socket) writeLoop() {
 // If the last argument is a function, it sets up an acknowledgment callback.
 func (s *Socket) Emit(event string, args ...any) {
 	var ackID *uint64
+
 	if len(args) > 0 {
 		lastArg := args[len(args)-1]
+
 		if reflect.TypeOf(lastArg).Kind() == reflect.Func {
 			id := atomic.AddUint64(&s.ackCounter, 1)
 			ackID = &id
 			s.ackMap.Store(id, reflect.ValueOf(lastArg))
+
 			// Timeout after 10 seconds
 			time.AfterFunc(10*time.Second, func() {
 				s.ackMap.Delete(id)
 			})
+
 			args = args[:len(args)-1]
 		}
 	}
+
 	eventData := append([]any{event}, args...)
 	data, _ := json.Marshal(eventData)
+
 	packet := sockets.Packet{
 		Type:      sockets.Event,
 		Data:      json.RawMessage(data),
 		Namespace: s.Namespace,
 		ID:        ackID,
 	}
+
 	select {
 	case s.writeChan <- packet:
 		return
