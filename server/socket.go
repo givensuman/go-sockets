@@ -201,6 +201,7 @@ func (s *Socket) Broadcast() *BroadcastOperator {
 		}
 		return true
 	})
+
 	return &BroadcastOperator{
 		namespace: s.Namespace,
 		targets:   targets,

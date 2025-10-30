@@ -80,36 +80,35 @@ func main() {
 ### Joining and Leaving Rooms
 
 ```go
-// Client-side
-socket.Join("room1")
-socket.Leave("room1")
-
-// Server-side (automatic with client join/leave events)
-s.Join("room1")  // Manual
-s.Leave("room1")
+// client.go
+socket.Join("some room")
+socket.Leave("some room")
 ```
 
 ### Broadcasting
 
 ```go
+// server.go
 // Broadcast to all other clients in namespace
 s.Broadcast().Emit("message", "Hello everyone!")
 
 // Broadcast to clients in specific room
-s.Broadcast().To("room1").Emit("message", "Hello room1!")
+s.Broadcast().To("some room").Emit("message", "Hello room!")
 
-// Broadcast to entire room
-ns.To("room1").Emit("message", "Hello room1!")
+// Broadcast to entire room, including sender
+ns.To("some room").Emit("message", "Hello room!")
 ```
 
-## Acknowledgments
+## Acknowledging
 
 ```go
+// client.go
 // Client requests data with acknowledgment
 socket.Emit("get_data", "request", func(response string) {
     log.Println("Received response:", response)
 })
 
+// server.go
 // Server responds to acknowledgment
 s.On("get_data", func(data string, ack func(string)) {
     ack("Response to: " + data)
@@ -118,8 +117,8 @@ s.On("get_data", func(data string, ack func(string)) {
 
 ## Examples
 
-See the `examples/` directory for complete implementations, including a chat application.
+See the [examples/](./examples) directory for complete implementations, including a chat application.
 
 ## License
 
-MIT
+[MIT](./LICENSE)
