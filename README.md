@@ -96,7 +96,7 @@ s.Broadcast().Emit("message", "Hello everyone!")
 s.Broadcast().To("some room").Emit("message", "Hello room!")
 
 // Broadcast to entire room, including sender
-ns.To("some room").Emit("message", "Hello room!")
+s.To("some room").Emit("message", "Hello room!")
 ```
 
 ## Acknowledging
