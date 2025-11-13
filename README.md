@@ -1,6 +1,6 @@
-# Go-Socket.IO
+# go-sockets
 
-A Go implementation of the Socket.IO protocol for real-time bidirectional communication between web clients and servers.
+A Go implementation of the Socket.IO API for real-time bidirectional communication between Go clients and Go servers.
 
 It attempts to implement the same [protocol/parser](https://socket.io/docs/v4/socket-io-protocol/), but does not attempt compatibility with the JavaScript library; instead it is meant for use between a Go server and a Go client either through WASM, command line, etc. If you want to write a Go server and client-side JavaScript, use [an alternative](https://github.com/feederco/go-socket.io).
 
